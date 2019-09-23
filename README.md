@@ -23,10 +23,10 @@ as well as in laboratory settings
     awake: 12V@12mA
 
 
-The APDRL features EFM32 ...the world´s most energy friendly microcontrollers
-
-ARM Cortex-M3 EFM32G230F128
-
 ![My image](https://github.com/peterloes/RFID-MS/blob/master/Getting_Started_Tutorial/1_SNB.JPG)
 
 SmartNestBox Application
+
+The RFID-MS features EFM32 ...the world´s most energy friendly microcontrollers
+
+ARM Cortex-M3 EFM32G230F128
