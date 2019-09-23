@@ -1,0 +1,77 @@
+DCF77 Empfänger AASV DCFn PON/Ri/1m Aktivantenne SV DCFn 
+
+HKW-Elektronik GmbH
+Jörg Schneider
+
+Eisenacher Str. 42 b
+99848 Wutha-Farnroda / Thür.
+Germany
+Phone:  +49 (0)36921 3080 130
+mailto:    schneider@hkw-elektronik.de
+www.hkw-elektronik.de
+
+
+Doppel - Lichtschranke Art.Nr. P00700 (Lichtschranken in Frontplatten):
+
+SWISSSENSOR AG
+Geschäftsleitung Hermann Beer
+
+Steinacherstrasse 4
+CH-9327 Tübach
+Germany
+Tel. +41(0)71 845 24 24
+mailto:beer@swisssensor.ch
+www.swisssensor.ch
+
+
+Lithium Ionen Akkupack Art.Nr. 60.16294 Panasonic NCR 18650GA 4S2P
+14,4Volt 6900mAh inklusive SMBus Kabel je. 150mm 
+
+DYNAMIS Batterien GmbH
+Josef Pfeil
+
+Brühlstraße 15  D- 78465 Dettingen / Konstanz
+Tel. +49 (0) 75 33/93 669-15
+mailto:josef.pfeil@dynamis-batterien.de
+www.dynamis-batterien.de
+
+ 
+Nanomodule Multi 125LV A/1.11 (T3NM-LV) Art.Nr. ART10413
+ANT002 Rundspule 47mm, 490µH Art.Nr. ART 10668
+
+Elatec GmbH
+Felix Ellspermann
+
+Zeppelinstr. 1
+82178 Puchheim 
+Germany
+Tel: +49 89 552 9961 120
+mailto: f.ellspermann@elatec.com
+www.elatec-rfid.com
+
+
+GlassTag 1,41x8,3mm EM4305 134kHz
+
+SMARTRAC TECHNOLOGY GROUP
+Rasmus Forntheil
+
+Gewerbeparkstr. 10
+51580 Reichshof-Wehnrath
+Germany
+Office: +49 (0)2265 9919-14
+E-Mail: rasmus.forntheil@smartrac-group.com
+Internet: www.smartrac-group.com
+
+
+Supplier of all Electronic Boards
+
+Top-Print Electronic GmbH
+Oskar Schmid
+
+Rosenheimer Landstr. 129a
+85521 Ottobrunn
+Germany
+Tel.: +49-89-60668047
+Fax: +49-89-60668049
+mailto: info@top-print.eu
+www.top-print.eu

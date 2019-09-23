@@ -1,0 +1,21 @@
+APRDL (code name SNB_Heaven) is an application to control an intelligent
+nest box (SNB = Smart Nest Box).  It consists of the following components:
+
+- ExtInt.c - External interrupt handler.
+- Keys.c - Key interrupt handling and translation.
+- AlarmClock.c - Alarm clock and timers facility.
+- DCF77.c - DCF77 Atomic Clock Decoder
+- clock.c - An implementation of the POSIX time() function.
+- LCD_DOGM162.c - Driver for the DOGM162 LC-Display.
+- Display.c - Display manager for LCD.
+- LightBarrier.c - Interrupt logic for the outer and inner light barrier,
+  enables the RFID reader.
+- RFID.c - RFID reader to receive transponder IDs.
+- BatteryMon.c - Battery monitor, periodically reads the state of the
+  battery via the SMBus.
+- LEUART.c - The Low-Energy UART can be used as monitoring and debugging
+  connection to a host computer.
+- microsd.c - Together with the files "diskio.c" and "ff.c", this module
+  provides an implementation of a FAT file system on the SD-Card.
+- Logging.c - Logging facility to send messages to the LEUART and store
+  them into a file on the SD-Card.
