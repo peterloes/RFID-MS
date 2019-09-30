@@ -27,6 +27,8 @@ as well as in laboratory settings
 
 SmartNestBox Application
 
-The RFID-MS features EFM32 ...the world´s most energy friendly microcontrollers
+Optional components
 
-ARM Cortex-M3 EFM32G230F128
+https://github.com/peterloes/Light_Barrier
+
+https://github.com/peterloes/Booter_RFID-MS_MOMO_TAMDL
