@@ -6,18 +6,18 @@ Platform for Animal Observation
 An efficient system to monitor animal behaviour in wildlife
 as well as in laboratory settings
 
--	Being compatible with different RFID systems and triggers
--	Low power consumption and specific data collection leading to long lasting collection periods
--	Being applicable world-wide due to its compatibility with different types of radio clock receivers 
--	Increasing the observation quality via decreasing the disturbance to the animals
+-	Compatible with different RFID systems and triggers
+-	Low power consumption and specific data collection lead to long lasting collection periods
+-	Applicable world-wide due to its compatibility with different types of radio clock receivers 
+-	High observation quality through low disturbance of the animals
 
 ![My image](https://github.com/peterloes/RFID-MS/blob/master/Getting_Started_Tutorial/2_Electronic_board.jpg)
 
-- Time Synchronization onces a day
-- Application Current Control twice a day
-- Forecast Battery-Change
-- Energy Bypass, don't lose Date and Time when changing battery
-- Hyperterminal Output, to get real-time data.
+- Time Synchronization to atomic clock once a day to ensure optimal data quality
+- Current Control twice a day
+- Forecast for Battery-Change implemented
+- Energy Bypass so that Date and Time are maintained even when changing battery
+- Hyperterminal Output to get real-time data in the field.
 - Low-Power Device: 
     sleep: 12V@40µA
     awake: 12V@12mA
