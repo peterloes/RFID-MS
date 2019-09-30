@@ -3,8 +3,8 @@ APRDL alias SNB_Heaven
 
 Platform for Animal Observation 
 
-An efficient system to monitor animal behaviour in wildlife
-as well as in laboratory settings
+An efficient system to monitor animal behaviour in the wild
+as well as under laboratory settings
 
 -	Compatible with different RFID systems and triggers
 -	Low power consumption and specific data collection lead to long lasting collection periods
@@ -27,7 +27,7 @@ as well as in laboratory settings
 
 SmartNestBox Application
 
-Optional components
+Optional components:
 
 https://github.com/peterloes/Light_Barrier
 
