@@ -13,11 +13,11 @@ as well as under laboratory settings
 
 ![My image](https://github.com/peterloes/RFID-MS/blob/master/Getting_Started_Tutorial/2_Electronic_board.jpg)
 
-- Time Synchronization to atomic clock once a day to ensure optimal data quality
+- Time Synchronization with atomic clock once a day to ensure optimal data quality
 - Current Control twice a day
 - Forecast for Battery-Change implemented
 - Energy Bypass so that Date and Time are maintained even when changing battery
-- Hyperterminal Output to get real-time data in the field.
+- Hyperterminal Output to get real-time data in the field
 - Low-Power Device: 
     sleep: 12V@40µA
     awake: 12V@12mA
