@@ -1,0 +1,113 @@
+DCF77 TEST
+==========
+2016-04-13, rage
+
+Setzen der initialen Zeit auf Winterzeit
+----------------------------------------
+Die Testuhr wird auf 07:52 MEZ gestellt (2016.02.26), die DCF77
+synchronisiert nach zwei Frames auf 07:54
+
+***** APRDL V1.1 *****
+
+00000000-000000 APRDL V1.1 (Apr 13 2016 18:40:43)
+20140101-120003 DCF77: Enabled
+20140101-120003 SD-Card Inserted
+20140101-120205 DCF77: Time Frame 1 is 20160226-075300
+20140101-120305 DCF77: Time Frame 2 is 20160226-075400
+20160226-075400 Initial Time Synchronisation
+20160226-075400 DCF77: Time Synchronization 07:54:00 (MEZ)
+20160226-075400 DCF77: Disabled
+
+
+Setzen der initialen Zeit auf Sommerzeit
+----------------------------------------
+Die DCF77 wird auf 20:46 MESZ gestellt (2016.04.13), die DCF77
+synchronisiert nach zwei Frames auf 20:49
+
+***** APRDL V1.1 *****
+
+00000000-000000 APRDL V1.1 (Apr 13 2016 18:40:43)
+20140101-120003 DCF77: Enabled
+20140101-120003 SD-Card Inserted
+20140101-120227 DCF77: Time Frame 1 is 20160413-204800
+20140101-120327 DCF77: Time Frame 2 is 20160413-204900
+20160413-204900 Initial Time Synchronisation
+20160413-204900 DCF77: Time Synchronization 20:49:00 (MESZ)
+20160413-204900 DCF77: Changing time zone from MEZ to MESZ
+20160413-204900 DCF77: Disabled
+
+
+Wechsel von Winter zu Sommerzeit
+--------------------------------
+Um den Wechsel innerhalb von 10Minuten testen zu können, geschieht dies in 2 Phasen:
+
+Phase 1
+1. MEZ auf 01:49 stellen (OHNE das Umschalten von MEZ auf MESZ anzuzeigen)
+2. DCF77 synchronisiert auf 01:51 und schaltet sich dann ab
+Phase 2
+2. Ab 01:53 das Umschalten von MESZ auf MEZ anzeigen (Bit 16, await change)
+3. Um 01:55 schaltet sich DCF77 wieder ein um den täglichen Sync. vorzunehmen
+4. Um 01:57 (nach zwei Frames) erfolgt die erste Synchronisation
+5. Da das "await change" Bit gesetzt ist, schaltet die DCF77 nicht sofort nach dem
+   zweiten Frame wieder ab, sondern erst, nachdem MEZ auf MESZ umgestellt wurde,
+   d.h. um 03:00
+
+***** APRDL V1.1 *****
+
+00000000-000000 APRDL V1.1 (Apr 13 2016 18:40:43)
+20140101-120003 DCF77: Enabled
+20140101-120003 SD-Card Inserted
+20140101-120210 DCF77: Time Frame 1 is 20160326-015000
+20140101-120310 DCF77: Time Frame 2 is 20160326-015100
+20160326-015100 Initial Time Synchronisation
+20160326-015100 DCF77: Time Synchronization 01:51:00 (MEZ)
+20160326-015100 DCF77: Disabled
+20160326-015500 DCF77: Enabled
+20160326-015702 DCF77: Time Frame 1 is 20160327-015700
+20160326-015802 DCF77: Time Frame 2 is 20160327-015800
+20160327-015800 DCF77: Time Synchronization 01:58:00 (MEZ)
+20160327-015859 DCF77: Time Frame 3 is 20160327-015900
+20160327-015900 DCF77: Time Synchronization 01:59:00 (MEZ)
+20160327-015959 DCF77: Time Frame 4 is 20160327-030000
+20160327-030000 DCF77: Time Synchronization 03:00:00 (MESZ)
+20160327-030000 DCF77: Changing time zone from MEZ to MESZ
+20160327-030000 DCF77: Disabled
+
+
+Wechsel von Sommer zu Winterzeit
+--------------------------------
+Um den Wechsel innerhalb von 10Minuten testen zu können, geschieht dies in 2 Phasen:
+
+Phase 1
+1. MESZ auf 02:49 stellen (OHNE das Umschalten von MESZ auf MEZ anzuzeigen)
+2. DCF77 synchronisiert auf 02:51 und schaltet sich dann ab
+Phase 2
+2. Ab 02:53 das Umschalten von MESZ auf MEZ anzeigen (Bit 16, await change)
+3. Um 02:55 schaltet sich DCF77 wieder ein um den täglichen Sync. vorzunehmen
+4. Um 02:57 (nach zwei Frames) erfolgt die erste Synchronisation
+5. Da das "await change" Bit gesetzt ist, schaltet die DCF77 nicht sofort nach dem
+   zweiten Frame wieder ab, sondern erst, nachdem MESZ auf MEZ umgestellt wurde,
+   d.h. um 02:00
+
+***** APRDL V1.1 *****
+
+00000000-000000 APRDL V1.1 (Apr 13 2016 18:40:43)
+20140101-120003 DCF77: Enabled
+20140101-120003 SD-Card Inserted
+20140101-120145 DCF77: Time Frame 1 is 20161028-025000
+20140101-120245 DCF77: Time Frame 2 is 20161028-025100
+20161028-025100 Initial Time Synchronisation
+20161028-025100 DCF77: Time Synchronization 02:51:00 (MESZ)
+20161028-025100 DCF77: Changing time zone from MEZ to MESZ
+20161028-025100 DCF77: Disabled
+20161028-025500 DCF77: Enabled
+20161028-025701 DCF77: Time Frame 1 is 20161030-025700
+20161028-025801 DCF77: Time Frame 2 is 20161030-025800
+20161030-025800 DCF77: Time Synchronization 02:58:00 (MESZ)
+20161030-025859 DCF77: Time Frame 3 is 20161030-025900
+20161030-025900 DCF77: Time Synchronization 02:59:00 (MESZ)
+20161030-025959 DCF77: Time Frame 4 is 20161030-020000
+20161030-020000 DCF77: Time Synchronization 02:00:00 (MEZ)
+20161030-020000 DCF77: Changing time zone from MESZ to MEZ
+20161030-020000 DCF77: Disabled
+
