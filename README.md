@@ -1,7 +1,7 @@
 ﻿# RFID Management System RFID-MS
 APRDL alias SNB_Heaven
 
-Authors: Peter Loës, Peter Skripsky, Bart Kempenaers (2019) [![DOI](https://zenodo.org/badge/210345432.svg)](https://zenodo.org/badge/latestdoi/210345432)
+Authors: Loës P., Skripsky P., Kempenaers B. (2019) [![DOI](https://zenodo.org/badge/210345432.svg)](https://zenodo.org/badge/latestdoi/210345432)
 
 Platform for Animal Observation 
 
