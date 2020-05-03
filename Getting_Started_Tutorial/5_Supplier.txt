@@ -1,10 +1,10 @@
-DCF77 Empfänger AASV DCFn PON/Ri/1m Aktivantenne SV DCFn 
+DCF77 EmpfÃ¤nger AASV DCFn PON/Ri/1m Aktivantenne SV DCFn 
 
 HKW-Elektronik GmbH
-Jörg Schneider
+JÃ¶rg Schneider
 
 Eisenacher Str. 42 b
-99848 Wutha-Farnroda / Thür.
+99848 Wutha-Farnroda / ThÃ¼r.
 Germany
 Phone:  +49 (0)36921 3080 130
 mailto:    schneider@hkw-elektronik.de
@@ -14,10 +14,10 @@ www.hkw-elektronik.de
 Doppel - Lichtschranke Art.Nr. P00700 (Lichtschranken in Frontplatten):
 
 SWISSSENSOR AG
-Geschäftsleitung Hermann Beer
+GeschÃ¤ftsleitung Hermann Beer
 
 Steinacherstrasse 4
-CH-9327 Tübach
+CH-9327 TÃ¼bach
 Germany
 Tel. +41(0)71 845 24 24
 mailto:beer@swisssensor.ch
@@ -30,14 +30,14 @@ Lithium Ionen Akkupack Art.Nr. 60.16294 Panasonic NCR 18650GA 4S2P
 DYNAMIS Batterien GmbH
 Josef Pfeil
 
-Brühlstraße 15  D- 78465 Dettingen / Konstanz
+BrÃ¼hlstraÃŸe 15  D- 78465 Dettingen / Konstanz
 Tel. +49 (0) 75 33/93 669-15
 mailto:josef.pfeil@dynamis-batterien.de
 www.dynamis-batterien.de
 
  
 Nanomodule Multi 125LV A/1.11 (T3NM-LV) Art.Nr. ART10413
-ANT002 Rundspule 47mm, 490µH Art.Nr. ART 10668
+ANT002 Rundspule 47mm, 490ÂµH Art.Nr. ART 10668
 
 Elatec GmbH
 Felix Ellspermann
@@ -75,3 +75,19 @@ Tel.: +49-89-60668047
 Fax: +49-89-60668049
 mailto: info@top-print.eu
 www.top-print.eu
+
+
+Beschichtung mit Schmelzharz Bectron MR3404
+
+KC â€“ Kunststoff- Chemische Produkte GmbH
+Holger Sarau-Burghardt
+
+Leonberger StraÃŸe 86 
+DE 71292 Friolzheim
+phone: +49 (0)7044 9425 13
+e-mail: h.sarau-burghardt@kc-produkte.com
+http: www.conformalcoating.de
+
+
+Industrial SD Cards ATP 2GB
+https://www.atpinc.com/products/industrial-sd-cards
