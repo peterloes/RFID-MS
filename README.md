@@ -27,6 +27,8 @@ as well as in laboratory settings
 
 SmartNestBox Application 
 
+https://github.com/peterloes/RFID-MS/blob/master/Getting_Started_Tutorial/1_poster_overview_2.pdf
+
 Optional components:
 
 https://github.com/peterloes/Light_Barrier
