@@ -1,15 +1,15 @@
-Stückliste exportiert aus C:/MPIO/TECHNIK/HARDWARE/EAGLE_FILES/SNB_Heaven_2015/APRDL_2016_4L.sch am 30.09.2019 10:12
+StÃ¼ckliste exportiert am 30.09.2019 10:12
 
 Part  Value                                             Device                  Package                Description                                                    MF MPN     OC_FARNELL OC_NEWARK PACKAGE  SUPPLIER         
-C1    100µF/25V                                         CPOL-EUE                PANASONIC_E            POLARIZED CAPACITOR, European symbol                                                                                     
-C2    10µF/25V                                          C-EUC1206               C1206                  CAPACITOR, European symbol                                                                                               
-C3    22µF/10V                                          C-EUC1206               C1206                  CAPACITOR, European symbol                                                                                               
+C1    100ÂµF/25V                                         CPOL-EUE                PANASONIC_E            POLARIZED CAPACITOR, European symbol                                                                                     
+C2    10ÂµF/25V                                          C-EUC1206               C1206                  CAPACITOR, European symbol                                                                                               
+C3    22ÂµF/10V                                          C-EUC1206               C1206                  CAPACITOR, European symbol                                                                                               
 C4    EECS0HD 224;Panasonic                             GOLDCAPSPK-V            GOLDCAPSPK-V                                                                                                                                    
-C5    100µF/25V                                         CPOL-EUE                PANASONIC_E            POLARIZED CAPACITOR, European symbol                                                                                     
-C6    100µF/25V                                         CPOL-EUE                PANASONIC_E            POLARIZED CAPACITOR, European symbol                                                                                     
+C5    100ÂµF/25V                                         CPOL-EUE                PANASONIC_E            POLARIZED CAPACITOR, European symbol                                                                                     
+C6    100ÂµF/25V                                         CPOL-EUE                PANASONIC_E            POLARIZED CAPACITOR, European symbol                                                                                     
 C7    100nF/16V                                         C-EUC0805               C0805                  CAPACITOR, European symbol                                                                                               
 C8    100nF/16V                                         C-EUC0805               C0805                  CAPACITOR, European symbol                                                                                               
-C9    10µF/25V                                          C-EUC1206               C1206                  CAPACITOR, European symbol                                                                                               
+C9    10ÂµF/25V                                          C-EUC1206               C1206                  CAPACITOR, European symbol                                                                                               
 C10   100n                                              C-EUC0805               C0805                  CAPACITOR, European symbol                                                                                               
 C11   1u                                                C-EUC0805               C0805                  CAPACITOR, European symbol                                                                                               
 C12   12p                                               C-EUC0805               C0805                  CAPACITOR, European symbol                                                                                               
@@ -40,7 +40,7 @@ D3    BAT54C                                            D2A_SOT23               
 IC1   TPS62125                                          TPS62125                DSG_PWSO-N8_EXP                                                                                                                                 
 IC2   EFM32G230F128                                     EFM32G230F128           QFN64                  EFM32G230F128 Gecko Microcontroller in 9mm x 9mm QFN64 package                                                           
 J1    LUMBERG1502_01                                    LUMBERG1502_01          LUMBERG1502_01                                                                                                                                  
-L1    LPS3008/22µH                                      LPS3008                 LPS3008                                                                                                                                         
+L1    LPS3008/22ÂµH                                      LPS3008                 LPS3008                                                                                                                                         
 L2    BLM21B102S                                        WE-CBF-7427920_0805     0805                   SMD EMI Suppression Ferrite Beads WE-CBF                          7427920 1635707    08P2358   IND-0805 Wuerth Elektronik
 LCD1  Buchsenleisten(Conrad 741360) (n.b.)EA_DOGM162L_A EA_DOGM162              EA_DOGM                ELECTRONIC ASSEMBYL GmbH                                                                                                 
 LED1  SML-H12U8TT86                                     LEDCHIPLED_0805         CHIPLED_0805           LED                                                                                                                      
