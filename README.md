@@ -29,7 +29,7 @@ SmartNestBox Application
 
 https://github.com/peterloes/RFID-MS/blob/master/Getting_Started_Tutorial/1_poster_overview_2.pdf
 
-Raw data:
+Raw data on SD Card:
 
 https://github.com/peterloes/RFID-MS/blob/master/Getting_Started_Tutorial/6_rawdata_BOX0001.TXT
 
