@@ -1,4 +1,4 @@
-20191210-115210.000 SD-Card Removed
+20191210-115210.000 SD-Card Inserted
 20191210-115803.000 RFID is powered off
 20191210-120000.013 Battery Remaining Capacity: 5611mAh
 20191210-120000.022 Battery Runtime to empty  : More than 6 weeks
