@@ -1,3 +1,4 @@
+Active antennas
 DCF77 Empfänger AASV DCFn PON/Ri/1m Aktivantenne SV DCFn 
 
 HKW-Elektronik GmbH
@@ -11,6 +12,8 @@ mailto:    schneider@hkw-elektronik.de
 www.hkw-elektronik.de
 
 
+
+Lightbarriers for front plate nestbox
 Doppel - Lichtschranke Art.Nr. P00700 (Lichtschranken in Frontplatten):
 
 SWISSSENSOR AG
@@ -24,7 +27,9 @@ mailto:beer@swisssensor.ch
 www.swisssensor.ch
 
 
-Lithium Ionen Akkupack Art.Nr. 60.16294 Panasonic NCR 18650GA 4S2P
+
+Lithium Ionen rechargeable battery pack
+Art.Nr. 60.16294 Panasonic NCR 18650GA 4S2P
 14,4Volt 6900mAh inklusive SMBus Kabel je. 150mm 
 
 DYNAMIS Batterien GmbH
@@ -35,7 +40,9 @@ Tel. +49 (0) 75 33/93 669-15
 mailto:josef.pfeil@dynamis-batterien.de
 www.dynamis-batterien.de
 
- 
+
+
+RFID reader
 Nanomodule Multi 125LV A/1.11 (T3NM-LV) Art.Nr. ART10413
 ANT002 Rundspule 47mm, 490µH Art.Nr. ART 10668
 
@@ -50,6 +57,8 @@ mailto: f.ellspermann@elatec.com
 www.elatec-rfid.com
 
 
+
+Small sized transponder, not uniqued.
 GlassTag 1,41x8,3mm EM4305 134kHz
 
 SMARTRAC TECHNOLOGY GROUP
@@ -61,6 +70,7 @@ Germany
 Office: +49 (0)2265 9919-14
 E-Mail: rasmus.forntheil@smartrac-group.com
 Internet: www.smartrac-group.com
+
 
 
 Supplier of all Electronic Boards
@@ -77,7 +87,7 @@ mailto: info@top-print.eu
 www.top-print.eu
 
 
-Beschichtung mit Schmelzharz Bectron MR3404
+Protective coating with Schmelzharz Bectron MR3404
 
 KC – Kunststoff- Chemische Produkte GmbH
 Holger Sarau-Burghardt
@@ -87,6 +97,7 @@ DE 71292 Friolzheim
 phone: +49 (0)7044 9425 13
 e-mail: h.sarau-burghardt@kc-produkte.com
 http: www.conformalcoating.de
+
 
 
 Industrial SD Cards ATP 2GB
