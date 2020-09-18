@@ -68,6 +68,24 @@ Revision History:
 #define RTC_COUNTS_PER_SEC	32768
 
 
+/*!
+ * @brief Interrupt Priority Settings
+ *
+ * There are 8 priority levels 0 to 7 with 0 to be the highest and 7 to be the
+ * lowest priority.  DCF77 (which is called from the EXTI handler) and RTC must
+ * use the same priority level to lock-out each other, because they both use
+ * function localtime() and this is not multithreading save.  Funktion
+ * localtime_r() would be the right choice here, unfortunately it is not
+ * available with the IAR compiler library.
+ */
+#define INT_PRIO_UART	2		//!< UART interrupts for the RFID reader
+#define INT_PRIO_LEUART	2		//!< LEUART RX interrupt (not used)
+#define INT_PRIO_DMA	2		//!< DMA is used for LEUART
+#define INT_PRIO_SMB	2		//!< SMBus used by the battery monitor
+#define INT_PRIO_RTC	3		//!< lower priority than others
+#define INT_PRIO_EXTI	INT_PRIO_RTC	//!< must be the same as @ref INT_PRIO_RTC
+
+
 /*
  * Configuration for Atomic Clock module "DCF77.c"
  */

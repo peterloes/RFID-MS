@@ -23,6 +23,7 @@
  *   provides an implementation of a FAT file system on the SD-Card.
  * - Logging.c - Logging facility to send messages to the LEUART and store
  *   them into a file on the SD-Card.
+ * - PowerFail.c - Handler to switch off all loads in case of Power Fail.
  *
  * Parts of the code are based on the example code of AN0006 "tickless calender"
  * from Energy Micro AS.
@@ -58,6 +59,14 @@
  *
  ****************************************************************************//*
 Revision History:
+2020-09-18,rage	Version 1.2:
+              - Added support for battery controller TI bq40z50.
+                LogBatteryInfo: Removed SBS_ManufacturerData.
+                Display SBS_RunTimeToEmpty in days/hours/min.
+                Display SBS_SerialNumber as hex value.
+              - Corrected decoding of Short-Range(SR) RFID Reader transponder ID
+              - Added Power Fail Logic
+              - Added Interrupt Priority Settings
 2016-04-13,rage	Removed trigger mask from <l_ExtIntCfg>.
 2016-02-27,rage	Changed project name to "APRDL".
 2016-02-16,rage	Since ExtIntInit() no more enables the external interrupts,
@@ -229,6 +238,7 @@ Revision History:
 #include "LEUART.h"
 #include "BatteryMon.h"
 #include "Logging.h"
+#include "PowerFail.h"
 
 #include "ff.h"		// FS_FAT12/16/32
 #include "diskio.h"	// DSTATUS
@@ -317,10 +327,11 @@ volatile uint16_t	g_EM1_ModuleMask;
  */
 static const EXTI_INIT  l_ExtIntCfg[] =
 {   //	IntBitMask,	IntFct
-    {	KEY_EXTI_MASK,	KeyHandler	},	// Keys
-    {	DCF_EXTI_MASK,	DCF77Handler	},	// DCF77
-    {	LB_EXTI_MASK,	LB_Handler	},	// Light Barriers
-    {	0,		NULL		}
+    {	KEY_EXTI_MASK,	KeyHandler	 },	// Keys
+    {	DCF_EXTI_MASK,	DCF77Handler	 },	// DCF77
+    {	LB_EXTI_MASK,	LB_Handler	 },     // Light Barriers
+    {	PF_EXTI_MASK,	PowerFailHandler },    // Power Fail
+    {	0,		NULL	         }    
 };
 
 /*!
@@ -350,6 +361,18 @@ static const LCD_FIELD l_LCD_Field[LCD_FIELD_ID_CNT] =
     {  0,  1,	16	},	//!< 5: LCD_BATTERY
     {  0,  0,	16	},	//!< 6: LCD_CLOCK
     {  0,  1,	16	},	//!< 7: LCD_TRANSPONDER
+};
+
+/*!@brief Array of functions to be called in case of power-fail.
+ *
+ * Initialization array to define the power-fail handlers required for some
+ * modules.
+ * This array must be 0-terminated.
+ */
+static const POWER_FAIL_FCT l_PowerFailFct[] =
+{
+    RFID_PowerFailHandler,	// switch off RFID reader
+    NULL
 };
 
 /*=========================== Forward Declarations ===========================*/
@@ -414,6 +437,9 @@ int main( void )
 
     /* Initialize SD-Card Interface */
     DiskInit();
+    
+    /* Introduce Power-Fail Handlers, configure Interrupt */
+    PowerFailInit (l_PowerFailFct);
 
     /*
      * Initialize External Interrupts
@@ -454,7 +480,10 @@ int main( void )
      * ============================================ */
     while (1)
     {
-	/* Check if to power-on or off the RFID reader */
+      /* Check for power-fail */
+      if (! PowerFailCheck())
+      {	
+        /* Check if to power-on or off the RFID reader */
 	RFID_Check();
 
 	/* Update or power-off the LC-Display */
@@ -494,12 +523,13 @@ int main( void )
 
 	/* Check if to flush the log buffer */
 	LogFlushCheck();
+      }
 
-	/*
-	 * Check for current power mode:  If a minimum of one active module
-	 * requires EM1, i.e. <g_EM1_ModuleMask> is not 0, this will be
-	 * entered.  If no one requires EM1 activity, EM2 is entered.
-	 */
+      /*
+       * Check for current power mode:  If a minimum of one active module
+       * requires EM1, i.e. <g_EM1_ModuleMask> is not 0, this will be
+       * entered.  If no one requires EM1 activity, EM2 is entered.
+       */
 	if (! g_flgIRQ)		// enter EM only if no IRQ occured
 	{
 	    if (g_EM1_ModuleMask)

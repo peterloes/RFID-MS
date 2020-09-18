@@ -7,5 +7,5 @@ PRJ_INFO const prj =
     .ID = "$PRJ_INFO$",
     .Date = __DATE__,
     .Time = __TIME__,
-    .Version = "1.1"
+    .Version = "1.2"
 };
