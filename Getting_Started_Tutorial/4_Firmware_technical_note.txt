@@ -1,6 +1,20 @@
 APRDL (code name SNB_Heaven) is an application to control an intelligent
 nest box (SNB = Smart Nest Box).  It consists of the following components:
 
+APRDL_2020
+
+Version 1.2
+- Added support for battery controller TI bq40z50.
+  LogBatteryInfo: Removed SBS_ManufacturerData.
+  Display SBS_RunTimeToEmpty in days/hours/min.
+  Display SBS_SerialNumber as hex value.
+- Corrected decoding of Short-Range(SR) RFID Reader transponder ID
+- Added Power Fail Logic
+- Added Interrupt Priority Settings
+
+
+Version 1.1
+
 - ExtInt.c - External interrupt handler.
 - Keys.c - Key interrupt handling and translation.
 - AlarmClock.c - Alarm clock and timers facility.
