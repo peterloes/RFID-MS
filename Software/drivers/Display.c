@@ -56,12 +56,12 @@ static volatile bool	l_flgDisplayIsOn;
     /*!@brief Bit mask variable specifies which fields must be updated, each
      * bit refers to another field, see @ref LCD_FIELD_ID.
      */
-static volatile uint16_t l_bitMaskFieldUpd;
+static uint16_t l_bitMaskFieldUpd;
 
     /*!@brief Bit mask variable, containing the currently active fields, i.e.
      * the fields should be displayed on the LCD, see @ref l_bitMaskFieldUpd.
      */
-static volatile uint16_t l_bitMaskFieldActive;
+static uint16_t l_bitMaskFieldActive;
 
     /*!@brief Flag is set after DCF77 Date and Time has been displayed. */
 static volatile bool	l_flgDisplayUpdEnabled;
