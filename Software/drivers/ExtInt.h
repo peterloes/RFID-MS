@@ -5,6 +5,7 @@
  * @version	2016-02-16
  ****************************************************************************//*
 Revision History:
+2017-05-12,rage	Added prototype for ExtIntReplay().
 2016-04-13,rage	Removed element <IntTrigMask> from structure EXTI_INIT.
 2016-02-16,rage	Added prototypes for ExtIntEnableAll() and ExtIntDisableAll().
 2014-05-12,rage	Added prototypes for ExtIntEnable() and ExtIntDisable().
@@ -52,12 +53,13 @@ typedef struct
 
 /*================================ Prototypes ================================*/
 
-    /* External interrupt initialization */
+    /* External interrupt routines */
 void	ExtIntInit   (const EXTI_INIT *pInitStruct);
 void	ExtIntEnableAll (void);
 void	ExtIntDisableAll (void);
 void	ExtIntEnable (int extiNum);
 void	ExtIntDisable(int extiNum);
+void	ExtIntReplay (void);
 
 
 #endif /* __INC_ExtInt_h */

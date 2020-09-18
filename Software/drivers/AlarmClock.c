@@ -32,6 +32,7 @@
  *
  ****************************************************************************//*
 Revision History:
+2018-03-24,rage	Set interrupt priority for RTC_IRQn.
 2016-09-27,rage	Use INT_En/Disable() instead of __en/disable_irq().
 2016-09-27,rage	Added ClockGetMilliSec().
 2016-04-05,rage	Made all local and global variables of type "volatile".
@@ -169,6 +170,7 @@ void	AlarmClockInit (void)
     RTC_Enable (true);
 
     /* Enable RTC interrupts */
+    NVIC_SetPriority(RTC_IRQn, INT_PRIO_RTC);
     NVIC_ClearPendingIRQ(RTC_IRQn);
     NVIC_EnableIRQ(RTC_IRQn);
 }

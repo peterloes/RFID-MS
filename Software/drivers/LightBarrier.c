@@ -25,7 +25,7 @@ Revision History:
 /*========================= Global Data and Routines =========================*/
 
     /*!@brief Bit mask what Light Barriers are active. */
-volatile uint32_t  g_LB_ActiveMask;
+uint32_t  g_LB_ActiveMask;
 
 
 /***************************************************************************//**

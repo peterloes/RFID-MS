@@ -1,8 +1,8 @@
 /***************************************************************************//**
  * @file
  * @brief	RFID Reader
- * @author	Ralf Gerhauser
- * @version	2015-04-22
+ * @author	Peter Loes / Ralf Gerhauser
+ * @version	2020-09-17 / 2015-04-22
  *
  * This module provides the functionality to communicate with the RFID reader.
  * It contains the following parts:
@@ -43,6 +43,10 @@
  *
  ****************************************************************************//*
 Revision History:
+2020-06-03,rage	- BugFix: Corrected decoding of SR transponder ID.
+2019-02-10,rage	- RFID_Decode: Put generic parts at the end of the routine,
+		  added debug code to print the received data bytes.
+2018-11-12,rage	- Set interrupt priority for UARTs.
 2016-04-05,rage	Made all local variables of type "volatile".
 2014-11-25,rage	Initial version.
 */
@@ -117,7 +121,7 @@ static volatile bool	l_flgRFID_IsOn;
 static volatile bool	l_flgNewRun;
 
     /*! State (index) variable for RFID_Decode. */
-static volatile uint8_t	l_State;
+static uint8_t	l_State;
 
 /*=========================== Forward Declarations ===========================*/
 
@@ -180,7 +184,7 @@ void RFID_Disable (void)
     /* Re-trigger new run flag */
     l_flgNewRun = true;
 
-    /* (re-)start timer to switch the RFID reader OFF after time */
+/* (re-)start timer to switch the RFID reader OFF after time */
     if (l_hdlRFID_Off != NONE)
 	sTimerStart (l_hdlRFID_Off, RFID_POWER_OFF_TIMEOUT);
 }
@@ -282,6 +286,30 @@ void	RFID_Check (void)
     }
 }
 
+/***************************************************************************//**
+ *
+ * @brief	RFID Power Fail Handler
+ *
+ * This function will be called in case of power-fail to bring the RFID
+ * hardware into a quiescent, power-saving state.
+ *
+ ******************************************************************************/
+void	RFID_PowerFailHandler (void)
+{
+    /* Cancel timers */
+    if (l_hdlRFID_Off != NONE)
+	sTimerCancel (l_hdlRFID_Off);
+
+    /* Switch RFID reader off */
+    l_flgRFID_On = false;
+
+    if (l_flgRFID_IsOn)
+    {
+	RFID_PowerOff();
+	l_flgRFID_IsOn = false;
+    }
+}
+
 
 /***************************************************************************//**
  *
@@ -319,21 +347,30 @@ static void SwitchRFID_Off(TIM_HDL hdl)
  * light barriers.
  *
  ******************************************************************************/
-static void RFID_Decode(uint8_t byte)
+static void RFID_Decode(uint32_t byte)
 {
 const  uint8_t	 v[5] = { 0x0E, 0x00, 0x11, 0x00, 0x05};
 const  char	 HexChar[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
  				'8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 static uint8_t	 xorsum;	// sum of XORed data bytes
 static uint8_t	 w[14];		// buffer for storing received bytes
+bool	 flgRecvdID = false;
+char	 newTransponder[50]; // also used to store data in case of error message
+int	 offs = 0;	// byte offset within the received transponder message
+int	 i, pos;
 
-int		 i;
 
+    /* store current byte into receive buffer */
+    byte &= 0xFF;		// only bit 7~0 contains the data
+    DBG_PUTC('[');DBG_PUTC(HexChar[(byte >> 4) & 0xF]);
+    DBG_PUTC(HexChar[byte & 0xF]);DBG_PUTC(']');
 
+   w[l_State] = (uint8_t)byte;
+    
     /*
      * NOTE: Most of the code has been taken from file "RFID_tag.c"
      */
-    w[l_State] = byte;
+ 
 
     switch (l_State)	// the state machine!
     {
@@ -344,12 +381,13 @@ int		 i;
     case 2:
     case 3:
     case 4:
-	if (w[l_State] != v[l_State])// Vergleich des Prefix?
-	{
-	    l_State = 0;	// restart state machine
-	    break;		// break!
+	// Verify prefix
+        if (byte != v[l_State])
+        {
+	    l_State = 0; // restart state machine
+	    break;       // break!
 	}
-	/* no break */
+        /* no break */
     case 5:
     case 6:
     case 7:
@@ -358,46 +396,67 @@ int		 i;
     case 10:
     case 11:
     case 12:
-	xorsum ^= w[l_State];	// build checksum
+	xorsum ^= byte;		// build checksum
 	l_State++;		// go on
 	break;			// break!
 
     case 13:
-	if (w[13] == xorsum)	//Checksumme vergleichen!
+	if (w[13] != xorsum)	//handle ERROR case
 	{
-	char	 newTransponder[18];
-
-	    for (i=0; i<8; i++)	// copy w to trans and convert to ASCII HEX
+	    /* Print Hex Codes of the wrong message */
+	    pos = 0;
+            for (i=0; i<=13; i++)
 	    {
-		newTransponder[2*i]   = HexChar[(w[12-i]>>4) & 0x0F];
-		newTransponder[2*i+1] = HexChar[(w[12-i])    & 0x0F];
-	    }
-	    newTransponder[16] = '\0';
-
-	    /* see if a new run or Transponder Number has changed */
-	    if (l_flgNewRun  ||  strcmp (newTransponder, g_Transponder))
-	    {
-		l_flgNewRun = false;	// clear flag
-
-		/* yes, store new Transponder Number and update Display */
-		strcpy (g_Transponder, newTransponder);
-
-		DisplayUpdateTrigger (LCD_TRANSPONDER);
-
-		/* Generate Log Message */
-#ifdef LOGGING
-		Log ("Transponder: %s", g_Transponder);
-#endif
-	    }
-	}
-	/* no break */
-    default:
-	l_State = 0;		// restart state machine
-	break;
+		newTransponder[pos++] = ' ';
+		newTransponder[pos++] = HexChar[(w[i] >> 4) & 0x0F];
+		newTransponder[pos++] = HexChar[(w[i]) & 0x0F];
+            }
+	    newTransponder[pos] = '\0';            
+            LogError("RFID_Decode(): recv.XOR=0x%02X, calc.XOR=0x%02X,"
+		     " data is%s", w[13], xorsum, newTransponder);
+                
+            l_State = 0;	// restart state machine
+            break;
+                
+        }
+        flgRecvdID = true;	// ID has been received - set flag
+        offs = 12;		// byte offset within the message
+        break;
+	
+     default:
+	 l_State = 0;	// restart state machine
+	 break;
     }
+          
+    /* see if a transponder ID has been received */
+    if (flgRecvdID)
+    {
+        l_State = 0;		// restart state machine
+        
+       for (i=0; i < 8; i++)	// copy w and convert to ASCII HEX
+       {
+	    newTransponder[2*i]	  = HexChar[(w[offs-i]>>4) & 0x0F];
+	    newTransponder[2*i+1] = HexChar[(w[offs-i]) & 0x0F];
+       }
+       newTransponder[16] = '\0';
+    
+       /* see if a new run or Transponder Number has changed */
+       if (l_flgNewRun  ||  strcmp (newTransponder, g_Transponder))
+       {
+          l_flgNewRun = false;	// clear flag
 
+	  /* yes, store new Transponder Number and update Display */
+	  strcpy (g_Transponder, newTransponder);
+
+	  DisplayUpdateTrigger (LCD_TRANSPONDER);
+
+	  /* Generate Log Message */
+#ifdef LOGGING
+	 Log ("Transponder: %s", g_Transponder);
+#endif
+      }
+   }
 }
-
 
 /*============================================================================*/
 /*=============================== UART Routines ==============================*/
@@ -442,6 +501,7 @@ static void uartSetup(void)
   /* Prepare UART Rx and Tx interrupts */
   USART_IntClear(uart, _USART_IF_MASK);
   USART_IntEnable(uart, USART_IF_RXDATAV);
+  NVIC_SetPriority(UART_RX_IRQn, INT_PRIO_UART);
   NVIC_ClearPendingIRQ(UART_RX_IRQn);
   NVIC_EnableIRQ(UART_RX_IRQn);
 #if INCLUDE_UART_TX

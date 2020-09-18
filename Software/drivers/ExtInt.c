@@ -2,7 +2,7 @@
  * @file
  * @brief	External Interrupt Handling
  * @author	Ralf Gerhauser
- * @version	2016-02-16
+ * @version	2018-03-14
  *
  * The purpose of this module is to handle any kind of external interrupts
  * (EXTI).  In detail, this includes:
@@ -19,6 +19,10 @@
  *
  ****************************************************************************//*
 Revision History:
+2018-03-14,rage	Set interrupt priority for GPIO_EVEN_IRQn and GPIO_ODD_IRQn.
+2017-05-12,rage	Implemented ExtIntReplay().
+2017-05-02,rage	ExtIntEnableAll: Manually set all configured EXTI interrupts to
+		consider the current state of the related GPIO input.
 2016-04-13,rage	BugFix: Always detect rising and falling edges, so no interrupts
 		can get lost.  Determine real signal state from input port.
 2016-04-05,rage	Made local variable <l_extiBitMask> of type "volatile".
@@ -39,6 +43,7 @@ Revision History:
 #include "em_device.h"
 #include "em_assert.h"
 #include "em_bitband.h"
+#include "config.h"		// include project configuration parameters
 
 
 /*=============================== Definitions ================================*/
@@ -60,6 +65,9 @@ static const EXTI_INIT *l_pExtIntCfg;
 
     /*! Bit mask of all EXTIs in use */
 static volatile uint32_t l_extiBitMask;
+
+    /*! Flag is set during the "replay" of external interrupts */
+static volatile bool	 l_flgExtiReplay;
 
 /*=========================== Forward Declarations ===========================*/
 
@@ -119,8 +127,11 @@ void	ExtIntInit (const EXTI_INIT *pInitStruct)
     GPIO->EXTIFALL = l_extiBitMask;
 
     /* Clear and enable NVIC interrupts */
+    NVIC_SetPriority(GPIO_EVEN_IRQn, INT_PRIO_EXTI);
     NVIC_ClearPendingIRQ (GPIO_EVEN_IRQn);
     NVIC_EnableIRQ (GPIO_EVEN_IRQn);
+
+    NVIC_SetPriority(GPIO_ODD_IRQn, INT_PRIO_EXTI);
     NVIC_ClearPendingIRQ (GPIO_ODD_IRQn);
     NVIC_EnableIRQ (GPIO_ODD_IRQn);
 }
@@ -151,8 +162,37 @@ void	ExtIntEnableAll (void)
     /* Clear any pending interrupt */
     GPIO->IFC = 0xFFFF;
 
+    /*
+     * Be sure to consider static states of EXTI inputs by manually setting
+     * all EXTI interrupts that have been configured.  This will trigger
+     * EXTI_Handler() which determines the current GPIO state of the respective
+     * interrupt input.
+     */
+    GPIO->IFS = l_extiBitMask;
+
     /* Enable all configured interrupts */
     GPIO->IEN = l_extiBitMask;
+}
+
+/***************************************************************************//**
+ *
+ * @brief	Replay external interrupts
+ *
+ * Replay all external interrupts that have been configured.  This is necessary
+ * to consider changes of power states, e.g. power-fail or switching the feeder
+ * on or off, while the state of the external interrupts does not change.
+ *
+ ******************************************************************************/
+void	ExtIntReplay (void)
+{
+    /* Set flag to mark "replay" */
+    l_flgExtiReplay = true;
+
+    /* Replay all external interrupts that have been configured */
+    ExtIntEnableAll();
+
+    /* Reset "replay" flag */
+    l_flgExtiReplay = false;
 }
 
 /***************************************************************************//**
@@ -240,7 +280,8 @@ void	GPIO_ODD_IRQHandler (void)
  *
  * @note
  * The time stamp is read from the Real Time Counter (RTC), so its resolution
- * depends on the RTC.
+ * depends on the RTC.  A time stamp of 0 indicates a "replay" of the external
+ * interrupts, see ExtIntReplay().
  *
  ******************************************************************************/
 void	EXTI_Handler (void)
@@ -254,8 +295,8 @@ int	  portNum;		// GPIO port number of an EXTI
 bool	  extiLvl;		// current level of EXTI
 const EXTI_INIT *pExtIntCfg;	// pointer to EXTI configuration data
 
-    /* get time stamp from RTC */
-    timeStamp = RTC->CNT;
+    /* get time stamp from RTC, or set 0 for "replay" */
+    timeStamp = l_flgExtiReplay ? 0 : RTC->CNT;
 
     /* get EXTI status and mask out all disabled interrupts */
     status  = GPIO->IF;
@@ -301,4 +342,6 @@ const EXTI_INIT *pExtIntCfg;	// pointer to EXTI configuration data
 
     /* clear interrupt status bits */
     GPIO->IFC = status;
+
+    g_flgIRQ = true;	// keep on running
 }

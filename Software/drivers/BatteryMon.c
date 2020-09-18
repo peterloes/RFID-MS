@@ -2,7 +2,7 @@
  * @file
  * @brief	Battery Monitoring
  * @author	Ralf Gerhauser
- * @version	2016-02-26
+ * @version	2020-06-18
  *
  * This module periodically reads status information from the battery pack
  * via its SMBus interface.  It also provides routines to access the registers
@@ -23,6 +23,13 @@
  *
  ****************************************************************************//*
 Revision History:
+2020-06-18,rage LogBatteryInfo: Removed SBS_ManufacturerData.
+		Disabled workaround for probing prototype battery packs.
+2020-01-22,rage	Added support for battery controller TI bq40z50.
+2018-03-25,rage	Set interrupt priority for SMB_IRQn.
+		Added BatteryInfoReq() and BatteryInfoGet().
+		BatteryCheck() also handles read requests from BatteryInfoReq().
+		LogBatteryInfo() calls drvLEUART_sync() to prevent overflows.
 2016-04-05,rage	Made global variables of type "volatile".
 2016-02-26,rage	Implemented alarms to read battery status 2 times per day.
 		BugFix: <SMB_Status> must be declared volatile.
@@ -38,11 +45,14 @@ Revision History:
 
 /*=============================== Header Files ===============================*/
 
+#include <string.h>
 #include "em_cmu.h"
 #include "em_i2c.h"
 #include "em_emu.h"
 #include "em_gpio.h"
 #include "AlarmClock.h"		// msDelay()
+#include "LEUART.h"
+#include "PowerFail.h"
 #include "BatteryMon.h"
 #include "Display.h"
 #include "Logging.h"
@@ -52,8 +62,8 @@ Revision History:
     /*!@name Hardware Configuration: SMBus controller and pins. */
 //@{
 #define SMB_GPIOPORT		gpioPortA	//!< Port SMBus interface
-#define SMB_SDA_PIN		0		//!< Pin for SDA signal
-#define SMB_SCL_PIN		1		//!< Pin for SCL signal
+#define SMB_SDA_PIN		0		//!< Pin PA0 for SDA signal
+#define SMB_SCL_PIN		1		//!< Pin PA1 for SCL signal
 #define SMB_I2C_CTRL		I2C0		//!< I2C controller to use
 #define SMB_I2C_CMUCLOCK	cmuClock_I2C0	//!< Enable clock for I2C
 #define SMB_LOC		I2C_ROUTE_LOCATION_LOC0 //!< Use location 0
@@ -67,13 +77,57 @@ Revision History:
     /*!@brief I2C Recovery Timeout (5s) in RTC ticks */
 #define I2C_RECOVERY_TIMEOUT	(RTC_COUNTS_PER_SEC * 5)
 
+    /*!@brief Structure to hold Information about a Battery Controller */
+typedef struct
+{
+    uint8_t	 addr;		//!< SMBus address of the battery controller
+    BC_TYPE	 type;		//!< Corresponding controller type
+    const char	*name;		//!< ASCII name of the controller
+} BC_INFO;
+
+    /*!@brief Format identifiers.
+     *
+     * These enumerations specify various data formats.  They are used as an
+     * element in structure @ref ITEM to specify the data representation of
+     * an item.  They are handled by a switch() statement in ItemDataString().
+     */
+typedef enum
+{
+    FRMT_STRING,	//!<  0: 0-terminated string
+    FRMT_HEX,		//!<  1: H1,2,3,4 Hexadecimal data representation
+    FRMT_HEXDUMP,	//!<  2: Show Hexdump for more than 4 bytes
+    FRMT_INTEGER,	//!<  3: Integer value
+    FRMT_SERNUM,	//!<  4: Serial Number
+    FRMT_PERCENT,	//!<  5: U1 Amount in percent [%]
+    FRMT_DURATION,	//!<  6: U2 Duration in [min]
+    FRMT_OC_REATIME,	//!<  7: Overcurrent Reaction Time in 1/2[ms] units
+    FRMT_HC_REATIME,	//!<  8: Highcurrent Reaction Time in 2[ms] units
+    FRMT_VOLT,		//!<  9: U2 Voltage in [V]
+    FRMT_MILLIVOLT,	//!< 10: U2 Voltage in [mV]
+    FRMT_MILLIAMP,	//!< 11: I2 Current in [±mA], +:charging, -:discharging
+    FRMT_MILLIAMPH,	//!< 12: U2 Capacity in [mAh]
+    FRMT_MICROOHM,	//!< 13: Resistance in [uOhm]
+    FRMT_DATE,		//!< 14: Date [15:9=Year|8:5=Month|4:0=Day]
+    FRMT_TEMP,		//!< 15: U2 Temperature [0.1°K]
+    FRMT_TYPE_CNT	//!< Format Type Count
+} FRMT_TYPE;
+
 /*================================== Macros ==================================*/
 
-#ifndef LOGGING		// define as empty, if logging is not enabled
-    #define LogError(str)
+#ifndef LOGGING		// define as UART output, if logging is not enabled
+    #define LogError(str)	drvLEUART_puts(str "\n")
 #endif
 
 /*========================= Global Data and Routines =========================*/
+
+    /*!@brief I2C Device Address of the Battery Controller */
+uint8_t g_BatteryCtrlAddr;
+
+    /*!@brief Battery Controller Type */
+BC_TYPE g_BatteryCtrlType = BCT_UNKNOWN;
+
+    /*!@brief ASCII Name of the Battery Controller, or "" if no one found */
+const char *g_BatteryCtrlName;
 
     /*!@brief Battery voltage in [mV] */
 volatile int16_t   g_BattMilliVolt = (-1);   // show error message per default
@@ -82,6 +136,14 @@ volatile int16_t   g_BattMilliVolt = (-1);   // show error message per default
 volatile uint16_t  g_BattCapacity;
 
 /*================================ Local Data ================================*/
+
+    /*!@brief Probe List of supported Battery Controllers */
+static const BC_INFO l_ProbeList[] =
+{  //  addr	type		name (maximum 10 characters!)
+    {  0x0A,	BCT_ATMEL,	"ATMEL"		},
+    {  0x16,	BCT_TI,		"TI bq40z50",	},
+    {  0x00,	BCT_UNKNOWN,	""		}	// End of the list
+};
 
     /* Defining the SMBus initialization data */
 static I2C_Init_TypeDef smbInit =
@@ -96,13 +158,19 @@ static I2C_Init_TypeDef smbInit =
     /* Status of the last SMBus transaction */
 volatile I2C_TransferReturn_TypeDef SMB_Status;
 
-/* Flag to trigger battery monitoring measurement, see BAT_MON_INTERVAL. */
-static volatile bool l_flgBatMonTrigger;
+    /*!@brief Flag to trigger Battery Controller Probing. */
+static volatile bool	 l_flgBatteryCtrlProbe = true;
+
+    /*!@brief Flag to trigger battery monitoring measurement. */
+static volatile bool	 l_flgBatMonTrigger;
 
 #if BAT_MON_INTERVAL > 0
     /* Timer handle for the battery monitoring interval */
 static TIM_HDL	l_thBatMon = NONE;
 #endif
+
+    /* Battery Info structure - may hold up to two info requests */
+static BAT_INFO  l_BatInfo;
 
 /*=========================== Forward Declarations ===========================*/
 
@@ -139,6 +207,7 @@ void	 BatteryMonInit (void)
     I2C_Init (SMB_I2C_CTRL, &smbInit);
 
     /* Clear and enable SMBus interrupt */
+    NVIC_SetPriority(SMB_IRQn, INT_PRIO_SMB);
     NVIC_ClearPendingIRQ (SMB_IRQn);
     NVIC_EnableIRQ (SMB_IRQn);
 
@@ -160,6 +229,9 @@ void	 BatteryMonInit (void)
     AlarmAction (ALARM_BATTERY_MON_2, BatMonTriggerAlarm);
     AlarmSet (ALARM_BATTERY_MON_2, ALARM_BAT_MON_TIME_2);
     AlarmEnable (ALARM_BATTERY_MON_2);
+
+    /* Initialize Battery Info structure */
+    l_BatInfo.Req_1 = l_BatInfo.Req_2 = SBS_NONE;
 }
 
 
@@ -181,6 +253,70 @@ void	 BatteryMonDeinit (void)
 
     /* Disable clock for I2C controller */
     CMU_ClockEnable (SMB_I2C_CMUCLOCK, false);
+
+    /* Reset variables */
+    g_BatteryCtrlAddr = 0x00;
+    g_BatteryCtrlName = "";
+    g_BatteryCtrlType = BCT_UNKNOWN;
+}
+
+
+/***************************************************************************//**
+ *
+ * @brief	Probe for Controller Type
+ *
+ * This routine probes the type of battery controller.  This is done by checking
+ * dedicated I2C-bus addresses on the SMBus.  The following addresses and their
+ * corresponding controller type are supported:
+ * - 0x0A in case of Atmel, and
+ * - 0x16 for the TI bq40z50.
+ * The address is stored in @ref g_BatteryCtrlAddr, its ASCII name in @ref
+ * g_BatteryCtrlName and the controller type is stored as bit definition
+ * @ref BC_TYPE in @ref g_BatteryCtrlType.
+ *
+ ******************************************************************************/
+static void BatteryCtrlProbe (void)
+{
+int	i;
+int	status;
+
+
+    for (i = 0;  l_ProbeList[i].addr != 0x00;  i++)
+    {
+	g_BatteryCtrlAddr = l_ProbeList[i].addr;	// try this address
+	status = BatteryRegReadValue (SBS_ManufacturerAccess, NULL);
+	if (status >= 0)
+	{
+	    /* Response from controller - battery found */
+	    break;
+	}
+	else
+	{
+	    if (status != i2cTransferNack)
+		LogError ("BatteryCtrlProbe: Unexpected error %d", status);
+	}
+    }
+
+    g_BatteryCtrlAddr = l_ProbeList[i].addr;
+    g_BatteryCtrlName = l_ProbeList[i].name;
+    g_BatteryCtrlType = l_ProbeList[i].type;
+
+#if 0
+    /*
+     * WORKAROUND: There may be some Battery Packs with the new TI
+     * controller out in the field, that use I2C-bus address 0x0A.  These
+     * would be detected as "Atmel" devices, which is wrong.
+     * Therefore this workaround probes for register SBS_TurboPower (0x59)
+     * which only exists in the TI controller.
+     */
+    status = BatteryRegReadValue (SBS_TurboPower, NULL);
+    if (status >= 0)
+    {
+	/* Register exists - must be TI controller */
+	g_BatteryCtrlName = l_ProbeList[1].name;
+	g_BatteryCtrlType = l_ProbeList[1].type;
+    }
+#endif
 }
 
 
@@ -195,8 +331,10 @@ void	 BatteryMonDeinit (void)
  ******************************************************************************/
 void	 SMB_IRQHandler (void)
 {
+
     /* Update <SMB_Status> */
     SMB_Status = I2C_Transfer (SMB_I2C_CTRL);
+
 }
 
 
@@ -247,15 +385,15 @@ static void  SMB_Reset (void)
  * @brief	Read Word Register from the Battery Controller
  *
  * This routine reads two bytes from the register address specified by @p cmd,
- * assembles them to a 16bit value, and returns this.  If an error occured,
- * a negative status code is returned instead.
+ * assembles them to a signed 16bit value, and returns this.  If an error
+ * occurred, a negative status code is returned instead.
  *
  * @param[in] cmd
  *	SBS command, i.e. the register address to be read.
  *
  * @return
- *	Value of the 16bit register, or a negative error code of type @ref
- *	I2C_TransferReturn_TypeDef.  Additionally to those codes, there is
+ *	Requested 16bit signed data value, or a negative error code of type
+ *	@ref I2C_TransferReturn_TypeDef.  Additionally to those codes, there is
  *	another error code defined, named @ref i2cTransferTimeout.
  *
  * @see
@@ -264,53 +402,63 @@ static void  SMB_Reset (void)
  ******************************************************************************/
 int	 BatteryRegReadWord (SBS_CMD cmd)
 {
-I2C_TransferSeq_TypeDef smbXfer;	// SMBus transfer data
-uint8_t addrBuf[1];			// buffer for device address (0x0A)
-uint8_t dataBuf[2];			// buffer for data read from the device
+uint32_t value;
+int	 status;
+
+    status = BatteryRegReadValue (cmd, &value);
+
+    if (status < 0)
+	return status;
+
+    return (int16_t)value;
+}
 
 
-    /* Check parameter */
-    EFM_ASSERT ((cmd & ~0xFF) == 0);	// size field must be 0
+/***************************************************************************//**
+ *
+ * @brief	Read Register Value from the Battery Controller
+ *
+ * This routine reads a value from the register address specified by @p cmd.
+ * The size of the value is determined from @p cmd, it could be 1, 2, 3, or
+ * 4 bytes.
+ *
+ * @param[in] cmd
+ *	SBS command, i.e. the register address to be read.
+ *
+ * @param[in] pValue
+ *	Address of 32bit variable where to store the value read from the
+ *	register.  May be set to NULL, if value is omitted.
+ *
+ * @return
+ *	Status code @ref i2cTransferDone (0), or a negative error code of type
+ *	@ref I2C_TransferReturn_TypeDef.  Additionally to those codes, there is
+ *	another error code defined, named @ref i2cTransferTimeout.
+ *
+ * @see
+ *	BatteryRegReadBlock()
+ *
+ ******************************************************************************/
+int	 BatteryRegReadValue (SBS_CMD cmd, uint32_t *pValue)
+{
+uint8_t  dataBuf[6];			// buffer for data read from register
+uint32_t value = 0;
+int	 status;
+int	 i;
 
-    /* Set up SMBus transfer */
-    smbXfer.addr  = 0x0A;		// I2C address of the Battery Controller
-    smbXfer.flags = I2C_FLAG_WRITE_READ; // need write and read
-    smbXfer.buf[0].data = addrBuf;	// first write device I2C address
-    addrBuf[0] = cmd;
-    smbXfer.buf[0].len  = 1;		// 1 byte for I2C address
-    smbXfer.buf[1].data = dataBuf;	// where to store read data
-    smbXfer.buf[1].len  = 2;		// read 2 bytes from register
 
-    /* Start I2C Transfer */
-    SMB_Status = I2C_TransferInit (SMB_I2C_CTRL, &smbXfer);
+    /* Call block command to transfer data bytes into buffer */
+    status = BatteryRegReadBlock (cmd, dataBuf, sizeof(dataBuf));
 
-    /* Check early status */
-    if (SMB_Status < 0)
-	return SMB_Status;		// return error code
-
-    /* Wait until data is complete or time out */
-    uint32_t start = RTC->CNT;
-    while (SMB_Status == i2cTransferInProgress)
+    if (status == i2cTransferDone  &&  pValue != NULL)
     {
-	/* Enter EM1 while waiting for I2C interrupt */
-	EMU_EnterEM1();
+	/* build value from data buffer (always little endian) */
+	for (i = SBS_CMD_SIZE(cmd) - 1;  i >= 0;  i--)
+	    value = (value << 8) | dataBuf[i];
 
-	/* check for timeout */
-	if (((RTC->CNT - start) & 0x00FFFFFF) > I2C_XFER_TIMEOUT)
-	{
-	    SMB_Reset();
-	    SMB_Status = (I2C_TransferReturn_TypeDef)i2cTransferTimeout;
-	}
+	*pValue = value;
     }
 
-    /* Check final status */
-    if (SMB_Status != i2cTransferDone)
-    {
-	return SMB_Status;
-    }
-
-    /* Assign data for return value in LSB/MSB manner */
-    return (dataBuf[1] << 8) | dataBuf[0];	// return 16 bit data
+    return status;
 }
 
 
@@ -328,8 +476,8 @@ uint8_t dataBuf[2];			// buffer for data read from the device
  * @param[out] pBuf
  *	Address of a buffer where to store the data.
  *
- * @param[in] bufSize
- *	Buffer size in number of bytes.
+ * @param[in] rdCnt
+ *	Number of bytes to read.
  *
  * @return
  *	Status code @ref i2cTransferDone (0), or a negative error code of type
@@ -337,31 +485,35 @@ uint8_t dataBuf[2];			// buffer for data read from the device
  *	another error code defined, named @ref i2cTransferTimeout.
  *
  * @see
- *	BatteryRegReadWord()
+ *	BatteryRegReadValue()
  *
  ******************************************************************************/
-int	BatteryRegReadBlock (SBS_CMD cmd, uint8_t *pBuf, size_t bufSize)
+int	BatteryRegReadBlock (SBS_CMD cmd, uint8_t *pBuf, size_t rdCnt)
 {
 I2C_TransferSeq_TypeDef smbXfer;	// SMBus transfer data
-uint8_t addrBuf[1];			// buffer for device address (0x0A)
+uint8_t addrBuf[1];			// buffer for device address
 
 
     /* Check parameters */
-    EFM_ASSERT ((cmd & ~0xFF) != 0);	// size field must not be 0
+    EFM_ASSERT (SBS_CMD_SIZE(cmd) != 0);// size field must not be 0
     EFM_ASSERT (pBuf != NULL);		// buffer address
-    EFM_ASSERT (bufSize >= SBS_CMD_SIZE(cmd));	// buffer size
+    EFM_ASSERT (rdCnt >= SBS_CMD_SIZE(cmd));	// buffer size
 
-    if (bufSize < SBS_CMD_SIZE(cmd))	// if EFM_ASSERT() is empty
+    if (rdCnt < SBS_CMD_SIZE(cmd))	// if EFM_ASSERT() is empty
 	return i2cInvalidParameter;
+    
+       /* Check for power-fail */
+    if (IsPowerFail())
+	return i2cPowerFail;
 
-    /* Set up SMBus transfer */
-    smbXfer.addr  = 0x0A;		// I2C address of the Battery Controller
-    smbXfer.flags = I2C_FLAG_WRITE_READ; // need write and read
-    smbXfer.buf[0].data = addrBuf;	// first write device I2C address
-    addrBuf[0] = cmd;
-    smbXfer.buf[0].len  = 1;		// 1 byte for I2C address
-    smbXfer.buf[1].data = pBuf;		// where to store read data
-    smbXfer.buf[1].len  = SBS_CMD_SIZE(cmd);	// number of bytes to read
+    /* Set up SMBus transfer S-Wr-Cmd-Sr-Rd-data1-P */
+    smbXfer.addr  = g_BatteryCtrlAddr;	// I2C address of the Battery Controller
+    smbXfer.flags = I2C_FLAG_WRITE_READ; // write address, then read data
+    smbXfer.buf[0].data = addrBuf;	// first buffer (data to write)
+    addrBuf[0] = cmd;			// register address (strip higher bits)
+    smbXfer.buf[0].len  = 1;		// 1 byte for command
+    smbXfer.buf[1].data = pBuf;		// second buffer to store bytes read
+    smbXfer.buf[1].len  = rdCnt;	// number of bytes to read
 
     /* Start I2C Transfer */
     SMB_Status = I2C_TransferInit (SMB_I2C_CTRL, &smbXfer);
@@ -392,6 +544,195 @@ uint8_t addrBuf[1];			// buffer for device address (0x0A)
 
 /***************************************************************************//**
  *
+ * @brief	Item Data String
+ *
+ * This routine returns a formatted data string of the specified item data.
+ * It uses BatteryRegReadValue() and BatteryRegReadBlock() to read the data
+ * directly from the battery controller.
+ *
+ * @param[in] cmd
+ *	SBS command, i.e. the register address and number of bytes to read.
+ *
+ * @param[in] frmt
+ *	Format specifier for data representation.
+ *
+ * @return
+ * 	Static buffer that contains the formatted data string of the item,
+ * 	or error message if there was an error, e.g. a read error from the
+ * 	battery controller.
+ *
+ * @warning
+ *	This routine is not MT-save (which should not be a problem for this
+ *	application)!
+ *
+ ******************************************************************************/
+static const char *ItemDataString (SBS_CMD cmd, FRMT_TYPE frmt)
+{
+static char	 strBuf[120];	// static buffer to return string into
+uint8_t		 dataBuf[40];	// buffer for I2C data, read from the controller
+uint32_t	 value;		// unsigned data variable
+int		 data = 0;	// generic signed integer data variable
+int		 d, h, m;	// FRMT_DURATION: days, hours, minutes
+
+
+    /* Prepare check for string buffer overflow */
+    strBuf[sizeof(strBuf)-1] = 0x11;
+
+    if (cmd != SBS_NONE)
+    {
+	/* See how many bytes we need to read */
+	data = SBS_CMD_SIZE(cmd);	// get object size
+	if (data > 4)
+	{
+	    /* More than 32 bits - must be a block, e.g. a string */
+	    EFM_ASSERT(data < (int)sizeof(dataBuf));
+
+	    if (BatteryRegReadBlock (cmd, dataBuf, data) < 0)
+		return "READ ERROR";	// READ ERROR
+	}
+	else
+	{
+	    /* Read data word - may be 1, 2, 3, or 4 bytes long */
+	    if (BatteryRegReadValue (cmd, &value) < 0)
+		return "READ ERROR";	// READ ERROR
+
+	    data = (int)value;
+	}
+    }
+
+    /* Variable <data> contains 16bit raw value, build formatted string */
+    switch (frmt)
+    {
+	case FRMT_STRING:	// return string to be displayed
+	    /*
+	     * The first byte contains the number of ASCII characters WITHOUT
+	     * a trailing 0 as EndOfString marker.  However, in some cases the
+	     * specified byte count is larger than the string - then an EOS
+	     * marker exists in the data read from the controller.
+	     */
+	    data = dataBuf[0];
+	    EFM_ASSERT(data < (int)(sizeof(strBuf)-1));
+	    strncpy (strBuf, (char *)dataBuf+1, data);
+	    strBuf[data] = EOS;		// terminate string
+	    break;
+
+	case FRMT_HEXDUMP:	// prepare data as hexdump
+	    data = dataBuf[0];
+	    for (d = 0;  d < data;  d++)	// data = number of bytes
+		sprintf (strBuf + 3*d, "%02X ", dataBuf[d+1]);
+	    strBuf[3*d - 1] = EOS;
+	    break;
+
+	case FRMT_HEX:		// HEX Digits (8, 16, 24, or 32bit)
+	    switch (SBS_CMD_SIZE(cmd))
+	    {
+		case 1:
+		    sprintf (strBuf, "0x%02X", data);
+		    break;
+
+		case 2:
+		    sprintf (strBuf, "0x%04X", data);
+		    break;
+
+		case 3:
+		    sprintf (strBuf, "0x%06X", data);
+		    break;
+
+		case 4:
+		default:
+		    sprintf (strBuf, "0x%08lX", value);
+		    break;
+	    }
+	    break;
+
+	case FRMT_INTEGER:	// Integer Value
+	    sprintf (strBuf, "%d", data);
+	    break;
+
+	case FRMT_SERNUM:	// 5-Digit Integer Value
+	    sprintf (strBuf, "%0d", data);
+	    break;
+
+	case FRMT_PERCENT:	// Amount in percent
+	    sprintf (strBuf, "%d%%", data);
+	    break;
+
+	case FRMT_DURATION:	// Duration in [min]
+	    if (data > 65534)		// > 45d
+	    {
+		strcpy (strBuf, "> 45 days");
+	    }
+	    else
+	    {
+		d = data / 60 / 24;
+		data -= (d * 60 * 24);
+		h = data / 60;
+		data -= (h * 60);
+		m = data;
+		sprintf (strBuf, "%2dd %2dh %2dm", d, h, m);
+	    }
+	    break;
+
+	case FRMT_OC_REATIME:	// Overcurrent Reaction Time in 1/2[ms] units
+	    sprintf (strBuf, "%dms", data/2);
+	    break;
+
+	case FRMT_HC_REATIME:	// Highcurrent Reaction Time in 2[ms] units
+	    sprintf (strBuf, "%dms", data*2);
+	    break;
+
+	case FRMT_VOLT:		// Voltage in [V]
+	    sprintf (strBuf, "%d.%03dV", data / 1000, data % 1000);
+	    break;
+
+	case FRMT_MILLIVOLT:	// Voltage in [mV]
+	    sprintf (strBuf, "%dmV", data);
+	    break;
+
+	case FRMT_MILLIAMP:	// Current in [±mA], +:charging, -:discharging
+	    sprintf (strBuf, "%dmA", (int16_t)data);
+	    break;
+
+	case FRMT_MILLIAMPH:	// Capacity in [mAh]
+	    sprintf (strBuf, "%dmAh", data);
+	    break;
+
+	case FRMT_MICROOHM:	// Resistance in [uOhm]
+	    sprintf (strBuf, "%duOhm", data);
+	    break;
+
+	case FRMT_DATE:		// Date [15:9=Year|8:5=Month|4:0=Day]
+	    sprintf (strBuf, "%04d-%02d-%02d", 1980 + (data >> 9),
+		     (data >> 5) & 0xF, data & 0x1F);
+	    break;
+
+	case FRMT_TEMP:		// Temperature in 1/10[K], convert to [°C]
+	    {
+	    data -= 2732;	// subtract base of 273.16K
+	    int degC = data / 10;
+	    if (data < 0)
+		data = -data;
+	    sprintf (strBuf, "%d.%d C", degC, data % 10);
+	    }
+	    break;
+
+	default:		// unsupported format
+	    return "ERROR Unsupported Format";
+
+    }	// switch (pItem->Frmt)
+
+    /* Perform check for string buffer overflow */
+    if (strBuf[sizeof(strBuf)-1] != 0x11)
+    {
+	sprintf (strBuf, "ERROR strBuf Overflow, cmd=%d frmt=%d", cmd, frmt);
+    }
+
+    return strBuf;
+}
+
+
+/***************************************************************************//**
+ *
  * @brief	Log Battery Information
  *
  * Depending on the @ref BAT_LOG_INFO_LVL, this routine reads miscellaneous
@@ -413,15 +754,20 @@ uint8_t addrBuf[1];			// buffer for device address (0x0A)
 void	LogBatteryInfo (BAT_LOG_INFO_LVL infoLvl)
 {
 #ifdef LOGGING
-uint8_t	 buf[40];
-int	 data, numDays;
+uint32_t value;		// unsigned data variable
+
+    /* Check if the Battery Controller Probe routine should be called (again) */
+    if (l_flgBatteryCtrlProbe)
+    {
+	l_flgBatteryCtrlProbe = false;
+	BatteryCtrlProbe();
+    }
 
     /* Try to read a register from the battery controller */
-    data = BatteryRegReadWord (SBS_Voltage);
-    if (data < 0)
+    if (BatteryRegReadValue (SBS_Voltage, NULL) < 0)
     {
 	/* ERROR */
-	g_BattMilliVolt = data;
+	g_BattMilliVolt = (-1);
 	LogError ("Battery Controller Read Error");
 	return;
     }
@@ -429,80 +775,64 @@ int	 data, numDays;
     /* No get and log all the information */
     if (infoLvl == BAT_LOG_INFO_VERBOSE)
     {
-	if (BatteryRegReadBlock (SBS_ManufacturerName, buf, sizeof(buf)) == 0)
-	    Log ("Battery Manufacturer Name : %s", buf);
+	Log ("Battery Controller Type is \"%s\" at address 0x%02X",
+	     g_BatteryCtrlName, g_BatteryCtrlAddr);
 
-	if (BatteryRegReadBlock (SBS_ManufacturerData, buf, sizeof(buf)) == 0)
-	    Log ("Battery Manufacturer Data : %s", buf);
+	Log ("Battery Manufacturer Name : %s",
+	     ItemDataString(SBS_ManufacturerName, FRMT_STRING));
 
-	if (BatteryRegReadBlock (SBS_DeviceName, buf, sizeof(buf)) == 0)
-	    Log ("Battery Device Name       : %s", buf);
+	Log ("Battery Device Name       : %s",
+	     ItemDataString(SBS_DeviceName, FRMT_STRING));
 
-	if (BatteryRegReadBlock (SBS_DeviceChemistry, buf, sizeof(buf)) == 0)
-	    Log ("Battery Device Type       : %s", buf);
+	Log ("Battery Device Type       : %s",
+	     ItemDataString(SBS_DeviceChemistry, FRMT_STRING));
 
-	data = BatteryRegReadWord (SBS_SerialNumber);
-	if (data >= 0)
-	    Log ("Battery Serial Number     : %05d", data);
+	Log ("Battery Serial Number     : %s",	// display as Hex value now
+	     ItemDataString(SBS_SerialNumber, FRMT_HEX));
 
-	data = BatteryRegReadWord (SBS_DesignVoltage);
-	if (data >= 0)
-	    Log ("Battery Design Voltage    : %d.%03dV per cell",
-		 data / 1000, data % 1000);
+	Log ("Battery Design Voltage    : %s%s",
+	     ItemDataString(SBS_DesignVoltage, FRMT_VOLT),
+	     g_BatteryCtrlType==BCT_ATMEL ? " per cell" : "");
 
-	data = BatteryRegReadWord (SBS_DesignCapacity);
-	if (data >= 0)
-	    Log ("Battery Design Capacity   : %dmAh", data);
+	Log ("Battery Design Capacity   : %s",
+	     ItemDataString(SBS_DesignCapacity, FRMT_MILLIAMPH));
 
-	data = BatteryRegReadWord (SBS_FullChargeCapacity);
-	if (data >= 0)
-	    Log ("Battery Full Charge Capac.: %dmAh", data);
+	Log ("Battery Full Charge Capac.: %s",
+	     ItemDataString(SBS_FullChargeCapacity, FRMT_MILLIAMPH));
     }
 
-    data = BatteryRegReadWord (SBS_RemainingCapacity);
-    if (data >= 0)
+    drvLEUART_sync();	// to prevent UART buffer overflow
+
+    if (BatteryRegReadValue(SBS_RemainingCapacity, &value) >= 0)
     {
-	g_BattCapacity = data;
+	g_BattCapacity = (uint16_t)value;
 	if (infoLvl != BAT_LOG_INFO_DISPLAY_ONLY)
-	    Log ("Battery Remaining Capacity: %dmAh", data);
+	    Log ("Battery Remaining Capacity: %ldmAh", value);
     }
 
     if (infoLvl != BAT_LOG_INFO_DISPLAY_ONLY)
     {
-	data = BatteryRegReadWord (SBS_RunTimeToEmpty);
-	if (data >= 0)
-	{
-	    if (data >= 65534)
-	    {
-		Log ("Battery Runtime to empty  : More than 6 weeks");
-	    }
-	    else
-	    {
-		numDays = data / 60 / 24;	// calculate run time in days
-		Log ("Battery Runtime to empty  : %dmin (%dd)", data, numDays);
-	    }
-	}
+	Log ("Battery Runtime to empty  : %s",
+	     ItemDataString(SBS_RunTimeToEmpty, FRMT_DURATION));
     }
 
-    data = BatteryRegReadWord (SBS_Voltage);
-    if (data >= 0)
+    if (BatteryRegReadValue(SBS_Voltage, &value) >= 0)
     {
-	g_BattMilliVolt = data;
+	g_BattMilliVolt = (int16_t)value;
 	if (infoLvl != BAT_LOG_INFO_DISPLAY_ONLY)
-	    Log ("Battery Actual Voltage    : %2d.%dV",
-		 data / 1000, (data % 1000) / 100);
-
-	DisplayUpdateTrigger (LCD_BATTERY);
+	    Log ("Battery Actual Voltage    : %2ld.%ldV",
+		 value / 1000, (value % 1000) / 100);
+        
+        DisplayUpdateTrigger (LCD_BATTERY);
     }
 
     if (infoLvl != BAT_LOG_INFO_DISPLAY_ONLY)
     {
-	data = BatteryRegReadWord (SBS_BatteryCurrent);
-	if (data >= 0)
-	{
-	    Log ("Battery Actual Current    : %4dmA", data);
-	}
+	Log ("Battery Actual Current    : %s",
+	     ItemDataString(SBS_BatteryCurrent, FRMT_MILLIAMP));
     }
+
+    drvLEUART_sync();	// to prevent UART buffer overflow
 #endif
 }
 
@@ -513,17 +843,73 @@ int	 data, numDays;
  *
  * This routine is called periodically to check the status of the battery.
  * It reads the voltage, the remaining capacity, and the remaining run time
- * from the battery controller via the SMBus.
+ * from the battery controller via the SMBus.<br>
+ * It also handles the requests for BatteryInfoReq(), resp. BatteryInfoGet().
  *
  ******************************************************************************/
 void	BatteryCheck (void)
 {
+bool	flgBatteryCtrlProbe = l_flgBatteryCtrlProbe;
+
+    /* Check if the Battery Controller Probe routine should be called (again) */
+    if (l_flgBatteryCtrlProbe)
+    {
+	l_flgBatteryCtrlProbe = false;
+	BatteryCtrlProbe();
+    }
+
+    /* Check for Battery Information Request */
+    if (l_BatInfo.Req_1 != SBS_NONE)
+    {
+	if (SBS_CMD_SIZE(l_BatInfo.Req_1) > 4)
+	    BatteryRegReadBlock (l_BatInfo.Req_1, l_BatInfo.Buffer, 18);
+	else
+	    l_BatInfo.Data_1 = BatteryRegReadWord (l_BatInfo.Req_1);
+	l_BatInfo.Req_1  = SBS_NONE;
+    }
+
+    if (l_BatInfo.Req_2 != SBS_NONE)
+    {
+	msDelay(100);		// to prevent hang-up of battery controller
+
+	if (SBS_CMD_SIZE(l_BatInfo.Req_2) > 4)
+	    BatteryRegReadBlock (l_BatInfo.Req_2, l_BatInfo.Buffer, 18);
+	else
+	    l_BatInfo.Data_2 = BatteryRegReadWord (l_BatInfo.Req_2);
+	l_BatInfo.Req_2  = SBS_NONE;
+    }
+
+    l_BatInfo.Done = true;
+
+    /* see if to log battery status */
     if (l_flgBatMonTrigger)
     {
 	l_flgBatMonTrigger = false;
 
-	LogBatteryInfo (BAT_LOG_INFO_SHORT);
+	/* Log verbose information, if Battery Pack has changed */
+	LogBatteryInfo (flgBatteryCtrlProbe ? BAT_LOG_INFO_VERBOSE
+					    : BAT_LOG_INFO_SHORT);
     }
+}
+
+
+/***************************************************************************//**
+ *
+ * @brief	Battery Change Trigger
+ *
+ * This routine triggers the probing of a Battery Pack on the SMBus and logs
+ * the respective information, e.g. the serial number.
+ * If applicable, it should be called from PowerFailCheck() after power has
+ * returned (i.e. Power Good).
+ *
+ ******************************************************************************/
+void	BatteryChangeTrigger(void)
+{
+    /* Set trigger flags */
+    l_flgBatMonTrigger = true;
+    l_flgBatteryCtrlProbe = true;
+
+    g_flgIRQ = true;	// keep on running
 }
 
 
@@ -569,4 +955,40 @@ static void	BatMonTriggerAlarm(int alarmNum)
     l_flgBatMonTrigger = true;
 
     g_flgIRQ = true;	// keep on running
+}
+
+
+/***************************************************************************//**
+ *
+ * @brief	Battery Information Request
+ *
+ * This routine can be called from interrupt context to introduce up to two
+ * requests for battery information.  The requests will be handled by function
+ * BatteryCheck().  Use BatteryInfoGet() to poll for finished requests and
+ * get the data.  If only one request is used, set <i>req_2</i> to SBS_NONE.
+ *
+ ******************************************************************************/
+void	 BatteryInfoReq (SBS_CMD req_1, SBS_CMD req_2)
+{
+    l_BatInfo.Req_1 = req_1;
+    l_BatInfo.Req_2 = req_2;
+    strcpy ((char *)l_BatInfo.Buffer, "ERROR");
+    l_BatInfo.Done  = false;
+}
+
+
+/***************************************************************************//**
+ *
+ * @brief	Battery Information Get
+ *
+ * This routine can be called from interrupt context to get the results of
+ * a battery information request.  The requests will be handled by function
+ * BatteryCheck().  Use BatteryInfoReq() to introduce information requests.
+ * The information request is finished, when both request elements are set
+ * to SBS_NONE.
+ *
+ ******************************************************************************/
+BAT_INFO *BatteryInfoGet (void)
+{
+    return &l_BatInfo;
 }

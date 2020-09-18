@@ -47,4 +47,7 @@ void	RFID_Check (void);
     /* Power RFID reader Off */
 void	RFID_PowerOff (void);
 
+    /* RFID Power Fail Handler */
+void	RFID_PowerFailHandler (void);
+
 #endif /* __INC_RFID_h */

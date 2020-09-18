@@ -2,9 +2,10 @@
  * @file
  * @brief	Header file of module LEUART.c
  * @author	Ralf Gerhauser
- * @version	2015-02-03
+ * @version	2018-03-19
  ****************************************************************************//*
 Revision History:
+2018-03-19,rage	Added prototype for drvLEUART_sync().
 2015-02-03,rage	Initial version.
 */
 
@@ -41,6 +42,9 @@ void	 drvLEUART_puts (const char *pStr);
 
 /* Put character into transmit FIFO */
 void	 drvLEUART_putc (char c);
+
+/* Wait until transmit FIFO is empty */
+void	 drvLEUART_sync(void);
 
 
 #endif /* __INC_LEUART_h */
