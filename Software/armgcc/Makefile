@@ -15,7 +15,7 @@
 ####################################################################
 
 DEVICE = EFM32G230F128
-PROJECTNAME = SNB_Heaven
+PROJECTNAME = APRDL
 
 OBJ_DIR = build
 EXE_DIR = exe
@@ -151,6 +151,7 @@ C_SRC +=  \
 ../drivers/Keys.c \
 ../drivers/LightBarrier.c \
 ../drivers/RFID.c \
+../drivers/PowerFail.c \
 ../drivers/Display.c \
 ../drivers/DCF77.c \
 ../drivers/Logging.c \
