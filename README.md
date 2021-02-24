@@ -39,6 +39,8 @@ https://github.com/peterloes/Light_Barrier
 
 https://github.com/peterloes/Booter_RFID-MS_MOMO_TAMDL
 
+https://github.com/peterloes/Clock_receiver_RFID-MS_MOMO_TAMDL
+
 Manufacture:
 
 https://github.com/peterloes/RFID-MS/blob/master/Getting_Started_Tutorial/5_Supplier.txt
