@@ -61,15 +61,15 @@ www.elatec-rfid.com
 Small sized transponder, not uniqued.
 GlassTag 1,41x8,3mm EM4305 134kHz
 
-SMARTRAC TECHNOLOGY GROUP
 Rasmus Forntheil
+Product Manager Animal ID
+RBIS Europe, Smartrac Specialty GmbH
 
-Gewerbeparkstr. 10
-51580 Reichshof-Wehnrath
-Germany
-Office: +49 (0)2265 9919-14
-E-Mail: rasmus.forntheil@smartrac-group.com
-Internet: www.smartrac-group.com
+e: rasmus.forntheil@eu.averydennison.com
+t: +49 (0) 2265 9919-14  |  m: +49 (0) 173 5688184
+Gewerbeparkstr. 10, 51580 Reichshof-Wehnrath, Germany
+
+Internet: https://www.averydennison.com/en/home.html
 
 
 
