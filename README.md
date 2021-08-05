@@ -1,5 +1,5 @@
 ﻿# RFID Management System RFID-MS
-APRDL alias SNB_Heaven
+[\[paper\]](https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/1365-2656.13160)
 
 Authors: Loës P., Skripsky P., Kempenaers B. (2019) [![DOI](https://zenodo.org/badge/210345432.svg)](https://zenodo.org/badge/latestdoi/210345432)
 
