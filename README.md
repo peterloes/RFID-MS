@@ -1,5 +1,5 @@
 ﻿# RFID Management System RFID-MS
-[\[paper\]](https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/1365-2656.13160)
+[\[paper\]](https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/1365-2656.13160) 2.3 Nest and feeder monitoring system
 
 Authors: Loës P., Skripsky P., Kempenaers B. (2019) [![DOI](https://zenodo.org/badge/210345432.svg)](https://zenodo.org/badge/latestdoi/210345432)
 
