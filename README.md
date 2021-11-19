@@ -44,3 +44,10 @@ https://github.com/peterloes/Clock_receiver_RFID-MS_MOMO_TAMDL
 Manufacture:
 
 https://github.com/peterloes/RFID-MS/blob/master/Getting_Started_Tutorial/5_Supplier.txt
+
+
+C is the Greenest Programming Language
+
+To achieve its power and energy-efficiency features, EFM32 products utilize ultralow active and idle power,
+fast wakeup and processing times, and most important, the ability to intelligently interact with peripherals
+and sensors autonomously without waking up the CPU and consuming more power.
