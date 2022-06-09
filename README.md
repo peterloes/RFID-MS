@@ -20,7 +20,7 @@ as well as in laboratory settings
 - Forecast for Battery-Change implemented
 - Energy Bypass so that Date and Time are maintained even when changing battery
 - Hyperterminal Output to get real-time data in the field
-- Low-Power Device:sleep: 12V@40µA awake: 12V@12mA
+- Low-Power Device:sleep: 40µA@12V awake: 12mA@12V
 
 
 ![My image](https://github.com/peterloes/RFID-MS/blob/master/Getting_Started_Tutorial/1_SNB.JPG)
