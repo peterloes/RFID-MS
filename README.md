@@ -3,10 +3,10 @@
 
 Authors: Loës P., Skripsky P., Kempenaers B. (2019) [![DOI](https://zenodo.org/badge/210345432.svg)](https://zenodo.org/badge/latestdoi/210345432)
 
-Platform for Animal Observation 
+Platform for animal observation. 
 
 An efficient system to monitor animal behaviour in wildlife
-as well as in laboratory settings
+as well as in laboratory settings.
 
 -	Compatible with different RFID systems and triggers
 -	Low power consumption and specific data collection lead to long lasting collection periods
