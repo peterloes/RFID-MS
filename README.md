@@ -7,7 +7,7 @@ https://www.mpg.de/14345523/0113-verh-060830-wer-zuerst-kommt-bruetet-zuerst
 Authors: Loës P., Skripsky P., Kempenaers B. (2019) [![DOI](https://zenodo.org/badge/210345432.svg)](https://zenodo.org/badge/latestdoi/210345432)
 
 
-# Platform for animal observation. 
+## Platform for animal observation 
 
 An efficient system to monitor animal behaviour in wildlife
 as well as in laboratory settings.
