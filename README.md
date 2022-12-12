@@ -29,7 +29,7 @@ as well as in laboratory settings.
 
 ![My image](https://github.com/peterloes/RFID-MS/blob/master/Getting_Started_Tutorial/1_SNB.JPG)
 
-SmartNestBox Application 
+SmartNestBox Application:
 
 https://github.com/peterloes/RFID-MS/blob/master/Getting_Started_Tutorial/1_poster_overview_2.pdf
 
