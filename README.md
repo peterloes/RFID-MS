@@ -52,10 +52,11 @@ To achieve its power and energy-efficiency features, EFM32 products utilize ultr
 fast wakeup and processing times, and most important, the ability to intelligently interact with peripherals
 and sensors autonomously without waking up the CPU and consuming more power.
 
+[\[paper\]](https://www.sciencedirect.com/science/article/pii/S0003347223000258?via%3Dihub)
+
+Data on the Start and End of Activity. All 277 nestboxes were equipped with a monitoring system that
+automatically recorded each nestbox visit of a PIT-tagged individual.
+
 https://www.mpg.de/14346664/0113-verh-060830-first-come-first-bred
 
 https://www.mpg.de/14345523/0113-verh-060830-wer-zuerst-kommt-bruetet-zuerst
-
-[\[paper\]](https://www.sciencedirect.com/science/article/pii/S0003347223000258?via%3Dihub)
-Data on the Start and End of Activity. All 277 nestboxes were equipped with a monitoring system that
-automatically recorded each nestbox visit of a PIT-tagged individual.
