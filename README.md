@@ -53,8 +53,8 @@ fast wakeup and processing times, and most important, the ability to intelligent
 and sensors autonomously without waking up the CPU and consuming more power.
 
 [\[paper\]](https://www.sciencedirect.com/science/article/pii/S0003347223000258?via%3Dihub)
-
-Data on the Start and End of Activity. All 277 nestboxes were equipped with a monitoring system that
+Data on the Start and End of Activity.
+All 277 nestboxes were equipped with a monitoring system that
 automatically recorded each nestbox visit of a PIT-tagged individual.
 
 https://www.mpg.de/14346664/0113-verh-060830-first-come-first-bred
