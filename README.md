@@ -56,4 +56,6 @@ https://www.mpg.de/14346664/0113-verh-060830-first-come-first-bred
 
 https://www.mpg.de/14345523/0113-verh-060830-wer-zuerst-kommt-bruetet-zuerst
 
-[\[paper\]](https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/1365-2656.13160) 2.3 Nest and feeder monitoring system
+[\[paper\]](https://www.sciencedirect.com/science/article/pii/S0003347223000258?via%3Dihub)
+Data on the Start and End of Activity. All 277 nestboxes were equipped with a monitoring system that
+automatically recorded each nestbox visit of a PIT-tagged individual.
