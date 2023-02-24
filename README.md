@@ -1,11 +1,5 @@
 ﻿# RFID Management System RFID-MS
  
-https://www.mpg.de/14346664/0113-verh-060830-first-come-first-bred
-
-https://www.mpg.de/14345523/0113-verh-060830-wer-zuerst-kommt-bruetet-zuerst
-
-[\[paper\]](https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/1365-2656.13160) 2.3 Nest and feeder monitoring system
-
 Authors: Loës P., Skripsky P., Kempenaers B. (2019) [![DOI](https://zenodo.org/badge/210345432.svg)](https://zenodo.org/badge/latestdoi/210345432)
 
 
@@ -57,3 +51,9 @@ C is the Greenest Programming Language
 To achieve its power and energy-efficiency features, EFM32 products utilize ultralow active and idle power,
 fast wakeup and processing times, and most important, the ability to intelligently interact with peripherals
 and sensors autonomously without waking up the CPU and consuming more power.
+
+https://www.mpg.de/14346664/0113-verh-060830-first-come-first-bred
+
+https://www.mpg.de/14345523/0113-verh-060830-wer-zuerst-kommt-bruetet-zuerst
+
+[\[paper\]](https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/1365-2656.13160) 2.3 Nest and feeder monitoring system
