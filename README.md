@@ -64,6 +64,6 @@ https://www.mpg.de/14345523/0113-verh-060830-wer-zuerst-kommt-bruetet-zuerst
 
 EXTENSION:
 
-Smart nest-box with long range RFID reader and external lightbarriers.
+Smart nest-box with long range RFID reader and external light barrier.
 
 https://github.com/peterloes/RFID-MS/blob/master/Getting_Started_Tutorial/3_SNB_LR_LB.jpg
