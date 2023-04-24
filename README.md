@@ -66,4 +66,4 @@ EXTENSION:
 
 Smart nest-box with long range RFID reader and external lightbarriers.
 
-https://github.com/peterloes/Data_Logger
+https://github.com/peterloes/RFID-MS/blob/master/Getting_Started_Tutorial/3_SNB_LR_LB.jpg
