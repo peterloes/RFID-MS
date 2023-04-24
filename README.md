@@ -60,3 +60,10 @@ automatically recorded each nestbox visit of a PIT-tagged individual.
 https://www.mpg.de/14346664/0113-verh-060830-first-come-first-bred
 
 https://www.mpg.de/14345523/0113-verh-060830-wer-zuerst-kommt-bruetet-zuerst
+
+
+EXTENSION:
+
+Smart nest-box with long range RFID reader and external lightbarriers.
+
+https://github.com/peterloes/Data_Logger
