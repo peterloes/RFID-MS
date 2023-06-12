@@ -1,6 +1,6 @@
 RFID-MS
 Layers 4
-Board Area 122mm x 82mm
+Board Area 124mm x 82mm
 
 
 Supplier of all Electronic Boards!
