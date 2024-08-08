@@ -61,6 +61,8 @@ www.elatec-rfid.com
 Small sized transponder, not uniqued.
 GlassTag 1,41x8,3mm EM4305 134kHz
 
+Programming required for transponders.
+
 Rasmus Forntheil
 Product Manager Animal ID
 RBIS Europe, Smartrac Specialty GmbH
