@@ -43,7 +43,7 @@ www.dynamis-batterien.de
 
 
 RFID reader
-Nanomodule Multi 125LV A/1.11 (T3NM-LV) Art.Nr. ART10413
+Nanomodule Multi 125LV A/1.11 (T3NM-LV) 125kHz +/-0,5% Art.Nr. ART10413
 ANT002 Rundspule 47mm, 490µH Art.Nr. ART 10668
 
 Elatec GmbH
